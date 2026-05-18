@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Member, ArisanRound, Transaction, ChatMessage } from "./types";
-import { UserPlus, Trash2, Trophy, Users, Dices, RotateCcw, Award, Wallet, Plus, Minus, Banknote, LogIn, LogOut, AlertCircle, Calendar, Bell, Clock, FileText, ArrowDownRight, ArrowUpRight, Check, Edit2, MessageCircle, X, Send, ImageIcon, Mic, Paperclip, IdCard, Download } from "lucide-react";
+import { UserPlus, Trash2, Trophy, Users, Dices, RotateCcw, Award, Wallet, Plus, Minus, Banknote, LogIn, LogOut, AlertCircle, Calendar, Bell, Clock, FileText, ArrowDownRight, ArrowUpRight, Check, Edit2, MessageCircle, X, Send, ImageIcon, Mic, Paperclip, IdCard, Download, Eye, EyeOff } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -25,6 +25,8 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState("admin123");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [arisanName, setArisanName] = useState<string>("Arisan Online");
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
@@ -364,18 +366,28 @@ export default function App() {
             {loginMode === 'admin' && !isResettingPassword && (
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      document.getElementById('login-btn')?.click();
-                    }
-                  }}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Password admin (admin123)"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        document.getElementById('login-btn')?.click();
+                      }
+                    }}
+                    className="w-full border border-neutral-300 rounded-lg pl-4 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Masukkan password admin"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                    title={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 <div className="flex justify-end mt-2">
                   <button 
                     onClick={() => {
@@ -393,18 +405,28 @@ export default function App() {
             {loginMode === 'admin' && isResettingPassword && (
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Password Baru</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      document.getElementById('login-btn')?.click();
-                    }
-                  }}
-                  className="w-full border border-neutral-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Masukkan password baru"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        document.getElementById('login-btn')?.click();
+                      }
+                    }}
+                    className="w-full border border-neutral-300 rounded-lg pl-4 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Masukkan password baru"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                    title={showNewPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 <div className="flex justify-end mt-2">
                   <button 
                     onClick={() => {
