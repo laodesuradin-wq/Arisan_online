@@ -202,79 +202,116 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
       {/* Header */}
-      <header className="bg-indigo-600 text-white shadow-md py-6 px-4 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Dices className="w-8 h-8" />
-          <h1 className="text-2xl font-bold tracking-tight">Arisan Online</h1>
+      <header className="bg-indigo-600 text-white shadow-md py-3 px-4 md:px-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Dices className="w-6 h-6" />
+          <h1 className="text-xl font-bold tracking-tight">Arisan Online</h1>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-           <div className="flex items-center gap-2 bg-indigo-700/50 px-4 py-2 rounded-lg border border-indigo-500/30 flex-1 md:flex-none justify-center">
-             <Wallet className="w-5 h-5 text-indigo-200" />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+           <div className="flex items-center gap-2 bg-indigo-700/50 px-3 py-1.5 rounded-lg border border-indigo-500/30 flex-1 md:flex-none justify-center">
+             <Wallet className="w-4 h-4 text-indigo-200" />
              <div className="flex flex-col">
-               <span className="text-[10px] text-indigo-200 font-medium uppercase tracking-wider leading-none">Total Saldo Kas</span>
-               <span className="font-bold whitespace-nowrap leading-tight">{formatRupiah(totalSaldo)}</span>
+               <span className="text-[9px] text-indigo-200 font-medium uppercase tracking-wider leading-none">Total Saldo Kas</span>
+               <span className="font-bold text-sm whitespace-nowrap leading-tight">{formatRupiah(totalSaldo)}</span>
              </div>
            </div>
            <button 
              onClick={resetPemenangMenu}
-             className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 transition-colors px-3 py-2 rounded-md text-sm font-medium flex-shrink-0"
+             className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-400 transition-colors px-2.5 py-1.5 rounded-md text-xs font-medium flex-shrink-0"
            >
-             <RotateCcw className="w-4 h-4" />
+             <RotateCcw className="w-3.5 h-3.5" />
              <span className="hidden sm:inline">Reset Ronde</span>
            </button>
            {isLoggedIn ? (
              <button 
                onClick={() => setIsLoggedIn(false)}
-               className="flex items-center gap-2 bg-indigo-700 hover:bg-indigo-800 transition-colors px-3 py-2 rounded-md text-sm font-medium flex-shrink-0"
+               className="flex items-center gap-1.5 bg-indigo-700 hover:bg-indigo-800 transition-colors px-2.5 py-1.5 rounded-md text-xs font-medium flex-shrink-0"
              >
-               <LogOut className="w-4 h-4" />
+               <LogOut className="w-3.5 h-3.5" />
                <span className="hidden sm:inline">Logout</span>
              </button>
             ) : (
              <button 
                onClick={() => setIsLoggedIn(true)}
-               className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 transition-colors px-3 py-2 rounded-md text-sm font-medium flex-shrink-0"
+               className="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-400 transition-colors px-2.5 py-1.5 rounded-md text-xs font-medium flex-shrink-0"
              >
-               <LogIn className="w-4 h-4" />
+               <LogIn className="w-3.5 h-3.5" />
                <span className="hidden sm:inline">Login</span>
              </button>
             )}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-5xl mx-auto p-3 md:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
         
+        {/* Promotional Banner */}
+        <div className="col-span-1 lg:col-span-12">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-xl shadow-md"
+          >
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-white opacity-10 blur-2xl"></div>
+            
+            <div className="relative z-10 px-4 py-3 md:px-5 md:py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+                <div className="hidden sm:flex flex-shrink-0 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full items-center justify-center border border-white/20">
+                  <Award className="w-5 h-5 text-yellow-300" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm tracking-wide text-white">Tabungan Pintar & Transparan</h3>
+                  <p className="text-white/90 text-[11px] md:text-xs mt-0.5 max-w-3xl leading-relaxed">
+                    Sistem otomatis mengecek dan men-update kalender setoran setiap harinya berdasarkan saldo riil yang ada. Tidak perlu repot cek mutasi manual.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 flex gap-2">
+                 <div className="w-8 h-8 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-colors">
+                   <Calendar className="w-4 h-4 text-pink-300" />
+                 </div>
+                 <div className="w-8 h-8 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 hover:bg-white/20 transition-colors">
+                   <Wallet className="w-4 h-4 text-indigo-300" />
+                 </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
         {/* Left Column: Input & Member List */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
+        <div className="lg:col-span-5 flex flex-col gap-4">
 
           <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-neutral-50 px-6 py-4 border-b border-neutral-200 flex items-center gap-2">
-              <Users className="w-5 h-5 text-indigo-600" />
-              <h2 className="font-semibold text-lg">Daftar Peserta</h2>
+            <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-200 flex items-center gap-2">
+              <Users className="w-4 h-4 text-indigo-600" />
+              <h2 className="font-semibold text-base">Daftar Peserta</h2>
               <span className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
                 {members.length} Orang
               </span>
             </div>
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-4 bg-neutral-100 p-3 rounded-lg border border-neutral-200">
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3 bg-neutral-100 p-2 rounded-lg border border-neutral-200">
                 <Banknote className="w-4 h-4 text-neutral-500" />
                 <span className="text-sm font-medium text-neutral-700">Nominal Tabungan Harian:</span>
                 <input
                   type="number"
                   value={iuranAmount}
                   onChange={(e) => setIuranAmount(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  className="w-28 border border-neutral-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                  className="w-24 border border-neutral-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
                   step="10000"
                   min="0"
                 />
               </div>
 
-              <form onSubmit={addMember} className="flex flex-col gap-2 mb-6">
+              <form onSubmit={addMember} className="flex flex-col gap-2 mb-4">
                 <div className="flex gap-2">
                   <input 
                     type="text" 
                     placeholder="Nama Peserta Baru..." 
-                    className={`flex-1 border ${errorMessage ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-neutral-300 focus:ring-indigo-500 focus:border-indigo-500'} rounded-lg px-4 py-2 focus:outline-none focus:ring-2 transition-shadow`}
+                    className={`flex-1 border text-sm ${errorMessage ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-neutral-300 focus:ring-indigo-500 focus:border-indigo-500'} rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 transition-shadow`}
                     value={newMemberName}
                     onChange={(e) => {
                       setNewMemberName(e.target.value);
@@ -284,9 +321,9 @@ export default function App() {
                   <button 
                     type="submit"
                     disabled={!newMemberName.trim()}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                    className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
                   >
-                    <UserPlus className="w-5 h-5" />
+                    <UserPlus className="w-4 h-4" />
                   </button>
                 </div>
                 <AnimatePresence>
@@ -295,16 +332,16 @@ export default function App() {
                       initial={{ opacity: 0, height: 0 }} 
                       animate={{ opacity: 1, height: 'auto' }} 
                       exit={{ opacity: 0, height: 0 }}
-                      className="text-red-500 text-sm flex items-center gap-1.5"
+                      className="text-red-500 text-xs flex items-center gap-1.5"
                     >
-                      <AlertCircle className="w-4 h-4" />
+                      <AlertCircle className="w-3.5 h-3.5" />
                       {errorMessage}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </form>
 
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                 <AnimatePresence>
                   {members.length === 0 ? (
                     <motion.div 
@@ -321,7 +358,7 @@ export default function App() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className={`flex flex-col gap-3 p-4 rounded-lg border ${member.hasWon ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : 'bg-white border-neutral-200'}`}
+                        className={`flex flex-col gap-2 p-3 rounded-lg border ${member.hasWon ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : 'bg-white border-neutral-200'} text-sm`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -499,13 +536,13 @@ export default function App() {
         </div>
 
         {/* Right Column: Draw & History */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
+        <div className="lg:col-span-7 flex flex-col gap-4">
           
           {/* Jadwal & Pengingat Widget */}
-          <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-neutral-200 pb-3">
-              <Calendar className="w-5 h-5 text-indigo-600" />
-              <h2 className="font-semibold text-lg">Jadwal Arisan</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <h2 className="font-semibold text-base">Jadwal Arisan</h2>
             </div>
             
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -567,17 +604,17 @@ export default function App() {
           </div>
 
           {/* Kocok Widget - Top priority action */}
-          <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
              
              {/* Draw area */}
              {!currentWinner && !isDrawing && (
-               <div className="text-center space-y-6">
-                 <div className="bg-indigo-50 w-20 h-20 mx-auto rounded-full flex items-center justify-center">
-                    <Award className="w-10 h-10 text-indigo-600" />
+               <div className="text-center space-y-4">
+                 <div className="bg-indigo-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center">
+                    <Award className="w-8 h-8 text-indigo-600" />
                  </div>
                  <div>
-                   <h3 className="text-xl font-semibold mb-2">Siap untuk Mengocok?</h3>
-                   <p className="text-neutral-500 text-sm">
+                   <h3 className="text-lg font-semibold mb-1">Siap untuk Mengocok?</h3>
+                   <p className="text-neutral-500 text-xs">
                      Terdapat {eligibleCount} peserta yang belum menang.
                    </p>
                  </div>
@@ -585,21 +622,21 @@ export default function App() {
              )}
 
              {isDrawing && (
-                <div className="text-center space-y-4">
+                <div className="text-center space-y-3">
                   <motion.div
                     animate={{ rotate: 360, scale: [1, 1.1, 1] }}
                     transition={{ repeat: Infinity, duration: 1 }}
                     className="inline-block"
                   >
-                    <Dices className="w-16 h-16 text-indigo-600" />
+                    <Dices className="w-12 h-12 text-indigo-600" />
                   </motion.div>
-                  <p className="text-neutral-500 font-medium">Mengocok...</p>
+                  <p className="text-neutral-500 font-medium text-sm">Mengocok...</p>
                   <motion.div 
                     key={shuffleName}
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="text-3xl font-bold text-indigo-700 mt-4"
+                    className="text-2xl font-bold text-indigo-700 mt-2"
                   >
                     {shuffleName}
                   </motion.div>
@@ -610,25 +647,25 @@ export default function App() {
                <motion.div 
                  initial={{ scale: 0.8, opacity: 0 }}
                  animate={{ scale: 1, opacity: 1 }}
-                 className="text-center space-y-4 z-10"
+                 className="text-center space-y-3 z-10"
                >
-                  <div className="inline-block p-4 bg-amber-100 text-amber-600 rounded-full mb-2">
-                    <Trophy className="w-12 h-12" />
+                  <div className="inline-block p-3 bg-amber-100 text-amber-600 rounded-full mb-1">
+                    <Trophy className="w-10 h-10" />
                   </div>
-                  <h3 className="text-neutral-500 font-medium tracking-wide uppercase text-sm">Selamat Kepada</h3>
-                  <div className="text-4xl font-extrabold text-neutral-900 break-words max-w-[400px]">
+                  <h3 className="text-neutral-500 font-medium tracking-wide uppercase text-xs">Selamat Kepada</h3>
+                  <div className="text-3xl font-extrabold text-neutral-900 break-words max-w-[400px]">
                     {currentWinner.name}
                   </div>
                </motion.div>
              )}
 
-             <div className="mt-8 z-10">
+             <div className="mt-6 z-10">
                 <button 
                   onClick={drawWinner}
                   disabled={isDrawing || eligibleCount === 0}
-                  className="bg-indigo-600 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-50 disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed flex items-center gap-3"
+                  className="bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:shadow-none disabled:transform-none disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  <Dices className="w-6 h-6" />
+                  <Dices className="w-5 h-5" />
                   {isDrawing ? "Mengocok..." : currentWinner ? "Kocok Lagi" : "Kocok Sekarang!"}
                 </button>
              </div>
@@ -636,21 +673,21 @@ export default function App() {
 
           {/* History Widget */}
           <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden flex-1">
-            <div className="bg-neutral-50 px-6 py-4 border-b border-neutral-200 flex items-center gap-6">
+            <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-200 flex items-center gap-4">
               <button 
                 onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2 font-semibold text-lg transition-colors ${activeTab === 'history' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
+                className={`flex items-center gap-1.5 font-semibold text-base transition-colors ${activeTab === 'history' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
               >
-                <Trophy className="w-5 h-5" />
+                <Trophy className="w-4 h-4" />
                 <span className="hidden sm:inline">Riwayat Pemenang</span>
                 <span className="sm:hidden">Pemenang</span>
               </button>
-              <div className="w-px h-6 bg-neutral-300"></div>
+              <div className="w-px h-5 bg-neutral-300"></div>
               <button 
                 onClick={() => setActiveTab('transactions')}
-                className={`flex items-center gap-2 font-semibold text-lg transition-colors ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
+                className={`flex items-center gap-1.5 font-semibold text-base transition-colors ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-4 h-4" />
                 <span className="hidden sm:inline">Riwayat Transaksi</span>
                 <span className="sm:hidden">Transaksi</span>
               </button>
@@ -659,7 +696,7 @@ export default function App() {
             <div className="p-0">
                {activeTab === 'history' ? (
                  history.length === 0 ? (
-                   <div className="p-8 text-center text-neutral-500 text-sm">
+                   <div className="p-6 text-center text-neutral-500 text-sm">
                      Belum ada riwayat pemenang.
                    </div>
                  ) : (
@@ -670,16 +707,16 @@ export default function App() {
                             key={round.id}
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="p-4 md:px-6 flex items-center gap-4 hover:bg-neutral-50 transition-colors"
+                            className="p-3 md:px-4 flex items-center gap-3 hover:bg-neutral-50 transition-colors"
                           >
-                            <div className="bg-neutral-100 text-neutral-500 font-mono text-sm px-2 py-1 rounded w-8 text-center flex-shrink-0">
+                            <div className="bg-neutral-100 text-neutral-500 font-mono text-xs px-2 py-1 rounded w-8 text-center flex-shrink-0">
                               #{history.length - index}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-neutral-900 truncate text-lg">
+                              <p className="font-bold text-neutral-900 truncate text-base">
                                 {round.winnerName}
                               </p>
-                              <p className="text-xs text-neutral-500">
+                              <p className="text-[10px] text-neutral-500">
                                 {new Date(round.date).toLocaleString('id-ID', {
                                   day: 'numeric',
                                   month: 'short',
@@ -689,8 +726,8 @@ export default function App() {
                                 })}
                               </p>
                             </div>
-                            <div className="text-amber-500 bg-amber-50 p-2 rounded-full hidden sm:block">
-                              <Award className="w-5 h-5" />
+                            <div className="text-amber-500 bg-amber-50 p-1.5 rounded-full hidden sm:block">
+                              <Award className="w-4 h-4" />
                             </div>
                           </motion.div>
                         ))}
@@ -699,7 +736,7 @@ export default function App() {
                  )
                ) : (
                  transactions.length === 0 ? (
-                   <div className="p-8 text-center text-neutral-500 text-sm">
+                   <div className="p-6 text-center text-neutral-500 text-sm">
                      Belum ada riwayat transaksi.
                    </div>
                  ) : (
@@ -710,17 +747,17 @@ export default function App() {
                             key={tx.id}
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="p-4 md:px-6 flex items-center justify-between hover:bg-neutral-50 transition-colors"
+                            className="p-3 md:px-4 flex items-center justify-between hover:bg-neutral-50 transition-colors"
                           >
-                            <div className="flex items-center gap-4">
-                              <div className={`p-2 rounded-full ${tx.type === 'IN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                {tx.type === 'IN' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                            <div className="flex items-center gap-3">
+                              <div className={`p-1.5 rounded-full ${tx.type === 'IN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                {tx.type === 'IN' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-bold text-neutral-900 truncate">
+                                <p className="font-bold text-neutral-900 truncate text-sm">
                                   {tx.memberName}
                                 </p>
-                                <p className="text-xs text-neutral-500">
+                                <p className="text-[10px] text-neutral-500">
                                   {tx.description} • {new Date(tx.date).toLocaleString('id-ID', {
                                     day: 'numeric',
                                     month: 'short',
@@ -731,7 +768,7 @@ export default function App() {
                                 </p>
                               </div>
                             </div>
-                            <div className={`font-mono font-bold flex-shrink-0 ${tx.type === 'IN' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            <div className={`font-mono text-sm font-bold flex-shrink-0 ${tx.type === 'IN' ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {tx.type === 'IN' ? '+' : '-'}{formatRupiah(tx.amount)}
                             </div>
                           </motion.div>
