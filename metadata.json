@@ -1,0 +1,8 @@
+{
+  "name": "Arisan Online",
+  "description": "Aplikasi manajemen arisan online untuk pencatatan dan pengocokan peserta secara digital.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
