@@ -22,3 +22,12 @@ export interface Transaction {
   date: string;
   description: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderName: string;
+  text?: string;
+  imageUrl?: string;
+  audioUrl?: string;
+  timestamp: string;
+}
