@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Member, ArisanRound } from "./types";
-import { UserPlus, Trash2, Trophy, Users, Dices, RotateCcw, Award, Wallet, Plus, Minus, Banknote, LogIn, LogOut } from "lucide-react";
+import { Member, ArisanRound, Transaction } from "./types";
+import { UserPlus, Trash2, Trophy, Users, Dices, RotateCcw, Award, Wallet, Plus, Minus, Banknote, LogIn, LogOut, AlertCircle, Calendar, Bell, Clock, FileText, ArrowDownRight, ArrowUpRight, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -8,20 +8,79 @@ export default function App() {
   const [members, setMembers] = useState<Member[]>([]);
   const [history, setHistory] = useState<ArisanRound[]>([]);
   const [newMemberName, setNewMemberName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [activeTab, setActiveTab] = useState<'history' | 'transactions'>('history');
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentWinner, setCurrentWinner] = useState<Member | null>(null);
   const [shuffleName, setShuffleName] = useState<string>("");
-  const [iuranAmount, setIuranAmount] = useState<number>(50000);
+  const [iuranAmount, setIuranAmount] = useState<number | string>(10000);
+  const [memberIuranInputs, setMemberIuranInputs] = useState<Record<string, number | string>>({});
+  const [activeMemberId, setActiveMemberId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [arisanInterval, setArisanInterval] = useState<number>(30); // dalam hari
+  const [nextDrawDate, setNextDrawDate] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    if (!nextDrawDate) {
+      setTimeLeft("");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const target = new Date(nextDrawDate).getTime();
+      const difference = target - now;
+
+      if (difference <= 0) {
+        setTimeLeft("Waktunya Mengocok!");
+        clearInterval(interval);
+      } else {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setTimeLeft(`${days}h ${hours}j ${minutes}m ${seconds}d`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [nextDrawDate]);
+
+  const setNextDraw = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + arisanInterval);
+    setNextDrawDate(date.toISOString());
+  };
 
   const addMember = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemberName.trim()) return;
+    const name = newMemberName.trim();
     
+    if (!name) {
+      setErrorMessage("Nama peserta tidak boleh kosong.");
+      return;
+    }
+    
+    if (name.length < 3) {
+      setErrorMessage("Nama peserta minimal 3 karakter.");
+      return;
+    }
+    
+    if (members.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+      setErrorMessage("Nama peserta sudah terdaftar.");
+      return;
+    }
+    
+    setErrorMessage("");
+
     const newMember: Member = {
       id: crypto.randomUUID(),
-      name: newMemberName.trim(),
+      name: name,
       hasWon: false,
       joinDate: new Date().toISOString(),
       saldo: 0
@@ -33,6 +92,27 @@ export default function App() {
 
   const updateMemberSaldo = (id: string, delta: number) => {
     setMembers(members.map(m => m.id === id ? { ...m, saldo: Math.max(0, (m.saldo || 0) + delta) } : m));
+  };
+
+  const confirmAndUpdateSaldo = (member: Member, delta: number) => {
+    const amount = Math.abs(delta);
+    if (amount <= 0) {
+      alert("Nominal transaksi harus lebih dari 0.");
+      return;
+    }
+    
+    updateMemberSaldo(member.id, delta);
+    
+    const transaction: Transaction = {
+      id: crypto.randomUUID(),
+      memberId: member.id,
+      memberName: member.name,
+      type: delta > 0 ? 'IN' : 'OUT',
+      amount: Math.abs(delta),
+      date: new Date().toISOString(),
+      description: delta > 0 ? 'Menabung' : 'Tarik tabungan'
+    };
+    setTransactions((prev) => [transaction, ...prev]);
   };
 
   const removeMember = (id: string) => {
@@ -66,8 +146,8 @@ export default function App() {
         setIsDrawing(false);
         setShuffleName("");
 
-        // Update member status
-        setMembers(members.map(m => m.id === winner.id ? { ...m, hasWon: true } : m));
+        // Update member status and reset saldo
+        setMembers(members.map(m => m.id === winner.id ? { ...m, hasWon: true, saldo: 0 } : { ...m, saldo: 0 }));
 
         // Add to history
         const round: ArisanRound = {
@@ -77,6 +157,9 @@ export default function App() {
           winnerName: winner.name,
         };
         setHistory([round, ...history]);
+        
+        // Reset transactions for the new round
+        setTransactions([]);
 
         // Fire confetti
         confetti({
@@ -85,6 +168,9 @@ export default function App() {
           origin: { y: 0.6 },
           colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff']
         });
+
+        // Set next draw date
+        setNextDraw();
       }
     }, intervalTime);
   };
@@ -93,6 +179,7 @@ export default function App() {
     if (window.confirm("Apakah Anda yakin ingin mereset data arisan?")) {
       setMembers([]);
       setHistory([]);
+      setTransactions([]);
       setCurrentWinner(null);
     }
   };
@@ -159,6 +246,7 @@ export default function App() {
         
         {/* Left Column: Input & Member List */}
         <div className="lg:col-span-5 flex flex-col gap-6">
+
           <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
             <div className="bg-neutral-50 px-6 py-4 border-b border-neutral-200 flex items-center gap-2">
               <Users className="w-5 h-5 text-indigo-600" />
@@ -170,31 +258,50 @@ export default function App() {
             <div className="p-6">
               <div className="flex items-center gap-2 mb-4 bg-neutral-100 p-3 rounded-lg border border-neutral-200">
                 <Banknote className="w-4 h-4 text-neutral-500" />
-                <span className="text-sm font-medium text-neutral-700">Nominal Iuran (Default):</span>
+                <span className="text-sm font-medium text-neutral-700">Nominal Tabungan Harian:</span>
                 <input
                   type="number"
                   value={iuranAmount}
-                  onChange={(e) => setIuranAmount(Number(e.target.value) || 0)}
+                  onChange={(e) => setIuranAmount(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0))}
                   className="w-28 border border-neutral-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
                   step="10000"
+                  min="0"
                 />
               </div>
 
-              <form onSubmit={addMember} className="flex gap-2 mb-6">
-                <input 
-                  type="text" 
-                  placeholder="Nama Peserta Baru..." 
-                  className="flex-1 border border-neutral-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                />
-                <button 
-                  type="submit"
-                  disabled={!newMemberName.trim()}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  <UserPlus className="w-5 h-5" />
-                </button>
+              <form onSubmit={addMember} className="flex flex-col gap-2 mb-6">
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Nama Peserta Baru..." 
+                    className={`flex-1 border ${errorMessage ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : 'border-neutral-300 focus:ring-indigo-500 focus:border-indigo-500'} rounded-lg px-4 py-2 focus:outline-none focus:ring-2 transition-shadow`}
+                    value={newMemberName}
+                    onChange={(e) => {
+                      setNewMemberName(e.target.value);
+                      if (errorMessage) setErrorMessage("");
+                    }}
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!newMemberName.trim()}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {errorMessage && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }} 
+                      animate={{ opacity: 1, height: 'auto' }} 
+                      exit={{ opacity: 0, height: 0 }}
+                      className="text-red-500 text-sm flex items-center gap-1.5"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {errorMessage}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </form>
 
               <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
@@ -233,6 +340,16 @@ export default function App() {
                           </div>
                           <div className="flex items-center gap-2">
                             {member.hasWon && <Trophy className="w-4 h-4 text-amber-500" />}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMemberId(activeMemberId === member.id ? null : member.id);
+                              }}
+                              className={`p-1 transition-colors ${activeMemberId === member.id ? 'text-indigo-600' : 'text-neutral-400 hover:text-indigo-500'}`}
+                              title="Tampilkan Progress Tabungan"
+                            >
+                              <Calendar className="w-4 h-4" />
+                            </button>
                             <button 
                               onClick={() => removeMember(member.id)}
                               className="text-neutral-400 hover:text-red-500 transition-colors p-1"
@@ -247,25 +364,124 @@ export default function App() {
                           <span className="text-xs font-medium text-neutral-500">Kelola Saldo</span>
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={() => updateMemberSaldo(member.id, -iuranAmount)}
-                              className="w-7 h-7 flex items-center justify-center rounded bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors disabled:opacity-50"
-                              title="Tarik Iuran"
-                              disabled={(member.saldo || 0) < iuranAmount}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMemberId(member.id);
+                                confirmAndUpdateSaldo(member, -(Number(memberIuranInputs[member.id] !== undefined ? memberIuranInputs[member.id] : iuranAmount) || 0));
+                              }}
+                              className="w-7 h-7 flex items-center justify-center rounded bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors disabled:opacity-50 flex-shrink-0"
+                              title="Tarik Tabungan"
+                              disabled={(member.saldo || 0) < (Number(memberIuranInputs[member.id] !== undefined ? memberIuranInputs[member.id] : iuranAmount) || 0)}
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-xs font-medium w-12 text-center text-neutral-600">
-                              {formatRupiah(iuranAmount).replace(',00', '').replace('Rp', '')}
-                            </span>
+                            <input
+                              type="number"
+                              value={memberIuranInputs[member.id] !== undefined ? memberIuranInputs[member.id] : iuranAmount}
+                              onChange={(e) => setMemberIuranInputs({ ...memberIuranInputs, [member.id]: e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0) })}
+                              onFocus={() => setActiveMemberId(member.id)}
+                              className="w-20 border border-neutral-300 rounded px-1 py-1 text-xs text-center bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                              step="10000"
+                              min="0"
+                            />
                             <button
-                              onClick={() => updateMemberSaldo(member.id, iuranAmount)}
-                              className="w-7 h-7 flex items-center justify-center rounded bg-neutral-100 text-indigo-600 hover:bg-indigo-100 transition-colors"
-                              title="Setor Iuran"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMemberId(member.id);
+                                confirmAndUpdateSaldo(member, Number(memberIuranInputs[member.id] !== undefined ? memberIuranInputs[member.id] : iuranAmount) || 0);
+                              }}
+                              className="w-7 h-7 flex items-center justify-center rounded bg-neutral-100 text-indigo-600 hover:bg-indigo-100 transition-colors flex-shrink-0"
+                              title="Menabung"
                             >
                               <Plus className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
+
+                        {/* Progress Tabungan (Tanggal Terceklis) */}
+                        <AnimatePresence>
+                          {activeMemberId === member.id && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pt-3 border-t border-neutral-100/50 mt-1">
+                                <span className="text-[11px] font-medium text-neutral-500 mb-2 block flex items-center justify-between">
+                                  <span>Progress Tabungan Harian (Berdasarkan Saldo)</span>
+                                  <button onClick={() => setActiveMemberId(null)} className="text-neutral-400 hover:text-neutral-600">
+                                    Tutup
+                                  </button>
+                                </span>
+                                <div className="flex flex-wrap gap-1 pb-1">
+                                  {(() => {
+                                    const currentDate = new Date();
+                                    const currentMonth = currentDate.getMonth();
+                                    const currentYear = currentDate.getFullYear();
+                                    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                                    const currentDayStr = currentDate.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+                                    const currentDay = currentDate.getDate();
+                                    
+                                    const depositTarget = Number(iuranAmount) || 10000;
+                                    const totalDaysPaid = Math.floor((member.saldo || 0) / depositTarget);
+                                    
+                                    const checkedDays = new Set<number>();
+                                    let remaining = totalDaysPaid;
+                                    
+                                    const inTx = transactions
+                                      .filter(t => t.memberId === member.id && t.type === 'IN')
+                                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                                      
+                                    for (const t of inTx) {
+                                      if (remaining <= 0) break;
+                                      const d = new Date(t.date);
+                                      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                                        let tDay = d.getDate();
+                                        const daysForTx = Math.floor(t.amount / depositTarget);
+                                        for (let i = 0; i < daysForTx; i++) {
+                                          if (remaining <= 0) break;
+                                          let checkDay = tDay + i;
+                                          if (checkDay > daysInMonth) checkDay = checkDay - daysInMonth; 
+                                          checkedDays.add(checkDay);
+                                          remaining--;
+                                        }
+                                      }
+                                    }
+                                    
+                                    let fallbackDay = 1;
+                                    while (remaining > 0 && fallbackDay <= daysInMonth) {
+                                      if (!checkedDays.has(fallbackDay)) {
+                                        checkedDays.add(fallbackDay);
+                                        remaining--;
+                                      }
+                                      fallbackDay++;
+                                    }
+                                    
+                                    return (
+                                      <>
+                                        <div className="w-full text-[10px] text-neutral-400 mb-1 font-medium">Bulan: {currentDayStr}</div>
+                                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                                          const isChecked = checkedDays.has(day);
+                                          const isToday = day === currentDay;
+                                          return (
+                                            <div 
+                                              key={day} 
+                                              className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${isChecked ? 'bg-indigo-500 text-white shadow-sm' : 'bg-neutral-100 text-neutral-400'} ${isToday && !isChecked ? 'ring-1 ring-indigo-400' : ''}`}
+                                              title={`Tanggal ${day} ${isChecked ? '(Sudah Menabung)' : '(Belum)'}`}
+                                            >
+                                              {isChecked ? <Check className="w-3 h-3" /> : day}
+                                            </div>
+                                          );
+                                        })}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
                     ))
                   )}
@@ -285,6 +501,71 @@ export default function App() {
         {/* Right Column: Draw & History */}
         <div className="lg:col-span-7 flex flex-col gap-6">
           
+          {/* Jadwal & Pengingat Widget */}
+          <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-neutral-200 pb-3">
+              <Calendar className="w-5 h-5 text-indigo-600" />
+              <h2 className="font-semibold text-lg">Jadwal Arisan</h2>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Periode Arisan</label>
+                <select 
+                  value={arisanInterval}
+                  onChange={(e) => setArisanInterval(Number(e.target.value))}
+                  className="w-full border border-neutral-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                >
+                  <option value={1}>1 Hari</option>
+                  <option value={7}>1 Minggu</option>
+                  <option value={14}>2 Minggu</option>
+                  <option value={30}>1 Bulan</option>
+                  <option value={90}>3 Bulan</option>
+                  <option value={180}>6 Bulan</option>
+                  <option value={365}>1 Tahun</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Jadwal Berikutnya</label>
+                <button 
+                  onClick={setNextDraw}
+                  className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Clock className="w-4 h-4" />
+                  {nextDrawDate ? "Perbarui Jadwal" : "Mulai Jadwal"}
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {nextDrawDate && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mt-2 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="bg-white p-2.5 rounded-full shadow-sm">
+                      <Bell className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-indigo-900 font-semibold">Pengingat Pengundian</p>
+                      <p className="text-xs text-indigo-700 capitalize">
+                        {new Date(nextDrawDate).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full sm:w-auto text-center sm:text-right">
+                    <span className="inline-block w-full sm:w-auto bg-white px-4 py-2 rounded-lg text-indigo-700 font-bold text-sm shadow-sm border border-indigo-100 font-mono tracking-wider">
+                      {timeLeft}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Kocok Widget - Top priority action */}
           <div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-8 flex flex-col items-center justify-center min-h-[300px] relative overflow-hidden">
              
@@ -355,49 +636,109 @@ export default function App() {
 
           {/* History Widget */}
           <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden flex-1">
-            <div className="bg-neutral-50 px-6 py-4 border-b border-neutral-200 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-indigo-600" />
-              <h2 className="font-semibold text-lg">Riwayat Pemenang</h2>
+            <div className="bg-neutral-50 px-6 py-4 border-b border-neutral-200 flex items-center gap-6">
+              <button 
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center gap-2 font-semibold text-lg transition-colors ${activeTab === 'history' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
+              >
+                <Trophy className="w-5 h-5" />
+                <span className="hidden sm:inline">Riwayat Pemenang</span>
+                <span className="sm:hidden">Pemenang</span>
+              </button>
+              <div className="w-px h-6 bg-neutral-300"></div>
+              <button 
+                onClick={() => setActiveTab('transactions')}
+                className={`flex items-center gap-2 font-semibold text-lg transition-colors ${activeTab === 'transactions' ? 'text-indigo-600' : 'text-neutral-400 hover:text-neutral-600'}`}
+              >
+                <FileText className="w-5 h-5" />
+                <span className="hidden sm:inline">Riwayat Transaksi</span>
+                <span className="sm:hidden">Transaksi</span>
+              </button>
             </div>
+
             <div className="p-0">
-               {history.length === 0 ? (
-                 <div className="p-8 text-center text-neutral-500 text-sm">
-                   Belum ada riwayat pemenang.
-                 </div>
+               {activeTab === 'history' ? (
+                 history.length === 0 ? (
+                   <div className="p-8 text-center text-neutral-500 text-sm">
+                     Belum ada riwayat pemenang.
+                   </div>
+                 ) : (
+                   <div className="divide-y divide-neutral-100 max-h-[500px] overflow-y-auto">
+                      <AnimatePresence>
+                        {history.map((round, index) => (
+                          <motion.div 
+                            key={round.id}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="p-4 md:px-6 flex items-center gap-4 hover:bg-neutral-50 transition-colors"
+                          >
+                            <div className="bg-neutral-100 text-neutral-500 font-mono text-sm px-2 py-1 rounded w-8 text-center flex-shrink-0">
+                              #{history.length - index}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-neutral-900 truncate text-lg">
+                                {round.winnerName}
+                              </p>
+                              <p className="text-xs text-neutral-500">
+                                {new Date(round.date).toLocaleString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                            <div className="text-amber-500 bg-amber-50 p-2 rounded-full hidden sm:block">
+                              <Award className="w-5 h-5" />
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                   </div>
+                 )
                ) : (
-                 <div className="divide-y divide-neutral-100">
-                    <AnimatePresence>
-                      {history.map((round, index) => (
-                        <motion.div 
-                          key={round.id}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="p-4 md:px-6 flex items-center gap-4 hover:bg-neutral-50 transition-colors"
-                        >
-                          <div className="bg-neutral-100 text-neutral-500 font-mono text-sm px-2 py-1 rounded w-8 text-center flex-shrink-0">
-                            #{history.length - index}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-neutral-900 truncate text-lg">
-                              {round.winnerName}
-                            </p>
-                            <p className="text-xs text-neutral-500">
-                              {new Date(round.date).toLocaleString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                          <div className="text-amber-500 bg-amber-50 p-2 rounded-full hidden sm:block">
-                            <Award className="w-5 h-5" />
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                 </div>
+                 transactions.length === 0 ? (
+                   <div className="p-8 text-center text-neutral-500 text-sm">
+                     Belum ada riwayat transaksi.
+                   </div>
+                 ) : (
+                   <div className="divide-y divide-neutral-100 max-h-[500px] overflow-y-auto">
+                      <AnimatePresence>
+                        {transactions.map((tx) => (
+                          <motion.div 
+                            key={tx.id}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="p-4 md:px-6 flex items-center justify-between hover:bg-neutral-50 transition-colors"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`p-2 rounded-full ${tx.type === 'IN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                {tx.type === 'IN' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-neutral-900 truncate">
+                                  {tx.memberName}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                  {tx.description} • {new Date(tx.date).toLocaleString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className={`font-mono font-bold flex-shrink-0 ${tx.type === 'IN' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {tx.type === 'IN' ? '+' : '-'}{formatRupiah(tx.amount)}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                   </div>
+                 )
                )}
             </div>
           </div>

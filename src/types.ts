@@ -12,3 +12,13 @@ export interface ArisanRound {
   winnerId: string;
   winnerName: string;
 }
+
+export interface Transaction {
+  id: string;
+  memberId: string;
+  memberName: string;
+  type: 'IN' | 'OUT';
+  amount: number;
+  date: string;
+  description: string;
+}
